@@ -1,0 +1,154 @@
+---
+title: "Lab1"
+author: "Adrián González"
+date: "2026-02-02"
+output: pdf_document
+---
+
+
+# Librerías
+
+```{r}
+library(tidyverse)
+library(lubridate)
+library(skimr)
+library(ggpubr)
+library(nortest)
+library(tidyr)
+```
+
+# Carga de datos
+```{r}
+movies <- read.csv("movies_2026.csv")
+```
+
+```{r}
+dim(movies)
+head(movies)
+```
+
+## Resumen general
+
+```{r}
+summary(movies)
+```
+
+```{r}
+skim(movies)
+```
+
+
+## Valores faltantes
+
+```{r}
+colSums(is.na(movies))
+```
+
+Distribución de variables cuantitativas
+
+## Normalidad
+Cuantitativas
+```{r}
+quant_vars <- movies %>%
+  select(
+    popularity,
+    budget,
+    revenue,
+    runtime,
+    genresAmount,
+    productionCoAmount,
+    productionCountriesAmount,
+    voteCount,
+    voteAvg,
+    actorsPopularity,
+    actorsAmount,
+    castWomenAmount,
+    castMenAmount,
+    releaseYear
+  ) %>%
+  mutate(across(everything(), as.numeric))
+```
+```{r lilliefors}
+lillie_results <- lapply(
+  quant_vars,
+  function(x) lillie.test(na.omit(x))$p.value
+)
+
+data.frame(
+  Variable = names(lillie_results),
+  P_Value = unlist(lillie_results)
+)
+```
+
+
+## Histogramas
+
+```{r}
+ggplot(movies, aes(popularity)) +
+  geom_histogram(bins = 40) +
+  theme_minimal() +
+  labs(title = "Distribución de la popularidad")
+
+ggplot(movies, aes(budget)) +
+  geom_histogram(bins = 40) +
+  theme_minimal() +
+  labs(title = "Distribución del presupuesto")
+
+ggplot(movies, aes(revenue)) +
+  geom_histogram(bins = 40) +
+  theme_minimal() +
+  labs(title = "Distribución de los ingresos")
+
+ggplot(movies, aes(runtime)) +
+  geom_histogram(bins = 40) +
+  theme_minimal() +
+  labs(title = "Distribución de la duración")
+
+```
+
+##Tablas de Frecuencias
+```{r}
+# Frecuencia de géneros
+movies %>%
+  count(genres, sort = TRUE)
+
+# Frecuencia de idioma original
+movies %>%
+  count(originalLanguage, sort = TRUE)
+
+# Presencia de videos promocionales
+movies %>%
+  count(video)
+
+# País de producción
+movies %>% count(productionCountry, sort = TRUE)
+
+# País de la compañía productora
+movies %>% count(productionCompanyCountry, sort = TRUE)
+
+# Página oficial
+movies %>% 
+  mutate(homePage = ifelse(is.na(homePage), "No", "Sí")) %>%
+  count(homePage)
+
+## Variables con muchas categorías
+# Directores más frecuentes
+movies %>% count(director, sort = TRUE) %>% head(10)
+
+# Compañías productoras más frecuentes
+movies %>% count(productionCompany, sort = TRUE) %>% head(10)
+
+# Actores más frecuentes
+movies %>%
+  filter(
+    !is.na(actors),
+    actors != "",
+    actors != "FALSE"
+  ) %>%
+  separate_rows(actors, sep = "\\|") %>%
+  count(actors, sort = TRUE) %>%
+  head(10)
+
+```
+
+
