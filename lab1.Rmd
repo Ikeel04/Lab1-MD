@@ -794,3 +794,225 @@ La variable que indica la presencia de videos promocionales presenta tres estado
 Al analizar los resultados, se observa que las películas con información faltante presentan ingresos promedio elevados, lo cual se explica por la presencia de producciones antiguas o de alto impacto comercial cuyo registro de marketing no estaba disponible. Por esta razón, los valores NA se interpretan como una categoría independiente y no como una ausencia explícita de estrategias promocionales.
 
 
+# Preguntas extras
+
+##Extra 1
+##¿Las películas producidas en más de un país tienen mayores ingresos que las producidas en un solo país?
+```{r}
+movies %>%
+  filter(!is.na(productionCountriesAmount), !is.na(revenue)) %>%
+  group_by(productionCountriesAmount) %>%
+  summarise(
+    avg_revenue = mean(revenue, na.rm = TRUE),
+    count = n(),
+    .groups = "drop"
+  ) %>%
+  arrange(productionCountriesAmount)
+
+```
+
+```{r}
+ggplot(
+  movies %>% filter(!is.na(productionCountriesAmount), !is.na(revenue)),
+  aes(productionCountriesAmount, revenue)
+) +
+  geom_point(alpha = 0.4) +
+  scale_y_log10() +
+  theme_minimal() +
+  labs(
+    title = "Cantidad de países de producción vs ingresos",
+    x = "Cantidad de países",
+    y = "Ingresos (log)"
+  )
+```
+Se aprecia que las películas producidas en más de un país tienden a presentar ingresos relativamente mayores, aunque la relación no es estrictamente lineal y está afectada por la presencia de valores atípicos.
+Dado que la variable de ingresos presenta una distribución altamente asimétrica, con valores que varían desde montos muy bajos hasta cifras extremadamente altas, se utilizó una escala logarítmica en el eje vertical del gráfico. La cual permite reducir el efecto de los valores extremos y facilita la visualización de patrones y tendencias en la mayoría de las observaciones, sin alterar la información original de los datos.
+
+## Extra 2
+## ¿Las películas con mayor número de géneros son más populares?
+
+```{r}
+genres_popularity <- movies %>%
+  filter(!is.na(genresAmount), !is.na(popularity)) %>%
+  group_by(genresAmount) %>%
+  summarise(
+    avg_popularity = mean(popularity, na.rm = TRUE),
+    count = n(),
+    .groups = "drop"
+  )
+```
+
+```{r}
+ggplot(genres_popularity, aes(factor(genresAmount), avg_popularity)) +
+  geom_col() +
+  theme_minimal() +
+  labs(
+    title = "Popularidad promedio según cantidad de géneros",
+    x = "Cantidad de géneros",
+    y = "Popularidad promedio"
+  )
+
+```
+Al analizar la popularidad promedio según la cantidad de géneros, se observa que las películas con entre tres y siete géneros concentran la mayor popularidad promedio. A partir de un mayor número de géneros, la popularidad no muestra un incremento claro, lo que sugiere que combinar muchos géneros no garantiza una mayor aceptación del público, excluyendo el de 16 géneros (el cual puede ser un dato atípico solamente).
+
+```{r}
+genres_popularity %>%
+  filter(count >= 50) %>%
+  ggplot(aes(factor(genresAmount), avg_popularity)) +
+  geom_col() +
+  theme_minimal() +
+  labs(
+    title = "Popularidad promedio según cantidad de géneros (categorías frecuentes)",
+    x = "Cantidad de géneros",
+    y = "Popularidad promedio"
+  )
+
+```
+Algunas cantidades de géneros aparecen muy pocas veces y pueden distorsionar el promedio, en este caso tomamos en cuenta las categorías con mayor cantidad de votos.
+
+## Extra 3
+## ¿La popularidad de la película está más relacionada con los votos o con los ingresos?
+
+```{r}
+cor(movies$popularity, movies$voteCount, method = "spearman", use = "complete.obs")
+cor(movies$popularity, movies$revenue, method = "spearman", use = "complete.obs")
+```
+
+```{r}
+ggplot(
+  movies %>% filter(!is.na(popularity), !is.na(revenue), revenue > 0),
+  aes(popularity, revenue)
+) +
+  geom_point(alpha = 0.4) +
+  scale_y_log10() +
+  theme_minimal() +
+  labs(
+    title = "Popularidad vs ingresos",
+    x = "Popularidad",
+    y = "Ingresos (log)"
+  )
+
+
+ggplot(
+  movies %>% filter(!is.na(popularity), !is.na(voteCount), voteCount > 0),
+  aes(popularity, voteCount)
+) +
+  geom_point(alpha = 0.4) +
+  scale_y_log10() +
+  theme_minimal() +
+  labs(
+    title = "Popularidad vs cantidad de votos",
+    x = "Popularidad",
+    y = "Cantidad de votos (log)"
+  )
+```
+El análisis muestra que la popularidad de una película está fuertemente correlacionada con la cantidad de votos recibidos (ρ = 0.84), lo que indica que la popularidad refleja principalmente la interacción del público en la plataforma.
+
+En contraste, la relación entre la popularidad y los ingresos es moderada (ρ = 0.55), lo que puede dar a entender que, aunque una mayor popularidad puede contribuir al éxito comercial, esta no es el único factor determinante de los ingresos.
+
+Para mejorar la visualización de estas relaciones, se utilizó una escala logarítmica en el eje vertical, debido a la alta asimetría y presencia de valores extremos en las variables de votos e ingresos.
+
+## Extra 4
+## ¿Las películas lanzadas en años recientes tienden a ser más populares?
+
+```{r}
+movies %>%
+  filter(!is.na(releaseYear), !is.na(popularity)) %>%
+  group_by(releaseYear) %>%
+  summarise(
+    avg_popularity = mean(popularity, na.rm = TRUE),
+    .groups = "drop"
+  )
+```
+
+```{r}
+ggplot(movies, aes(releaseYear, popularity)) +
+  geom_point(alpha = 0.3) +
+  theme_minimal() +
+  labs(
+    title = "Año de lanzamiento vs popularidad",
+    x = "Año",
+    y = "Popularidad"
+  )
+```
+Se observa que las películas más recientes tienden a presentar mayores niveles de popularidad, lo cual puede atribuirse a una mayor exposición y a la influencia de plataformas modernas en las que se difunden, aparte se puede deber a la mayor libertad a la hora de promocionar, criticar y ver las películas que van saliendo en los últimos años.
+
+## Extra 5
+## ¿Las películas con presupuestos extremos reciben peores calificaciones que las de presupuesto medio?
+
+```{r}
+movies %>%
+  filter(!is.na(budget), !is.na(voteAvg)) %>%
+  mutate(
+    budget_group = case_when(
+      budget < quantile(budget, 0.25, na.rm = TRUE) ~ "Bajo",
+      budget > quantile(budget, 0.75, na.rm = TRUE) ~ "Alto",
+      TRUE ~ "Medio"
+    )
+  ) %>%
+  group_by(budget_group) %>%
+  summarise(
+    avg_vote = mean(voteAvg, na.rm = TRUE),
+    .groups = "drop"
+  )
+```
+
+```{r data extra}
+movies_budget_group <- movies %>%
+  filter(!is.na(budget), !is.na(voteAvg)) %>%
+  mutate(
+    budget_group = case_when(
+      budget <= quantile(budget, 0.25, na.rm = TRUE) ~ "Bajo",
+      budget >= quantile(budget, 0.75, na.rm = TRUE) ~ "Alto",
+      TRUE ~ "Medio"
+    )
+  )
+movies_budget_group %>% count(budget_group) ##Cantidad de peliculas
+
+```
+
+
+```{r}
+ggplot(
+  movies_budget_group,
+  aes(budget_group, voteAvg)
+) +
+  geom_boxplot() +
+  theme_minimal() +
+  labs(
+    title = "Presupuesto vs calificación promedio",
+    x = "Grupo de presupuesto",
+    y = "Calificación"
+  )
+```
+Para analizar el efecto del presupuesto sobre la calificación promedio, las películas fueron clasificadas en tres grupos según su presupuesto: bajo, medio y alto, utilizando los cuartiles de la distribución.
+
+El diagrama de caja muestra que las películas con presupuestos medios y altos tienden a recibir calificaciones ligeramente superiores a las de bajo presupuesto. Sin embargo, las películas con presupuestos extremadamente altos no garantizan mejores evaluaciones por parte del público, lo que sugiere que una mayor inversión no siempre se traduce en una mejor percepción en la calidad de las películas.
+
+## Extra 6
+## ¿Existe relación entre la cantidad de actores y la duración de la película?
+
+```{r}
+ggplot(
+  movies %>% filter(!is.na(actorsAmount), !is.na(runtime)),
+  aes(actorsAmount, runtime)
+) +
+  geom_point(alpha = 0.4) +
+  theme_minimal() +
+  labs(
+    title = "Cantidad de actores vs duración",
+    x = "Cantidad de actores",
+    y = "Duración (min)"
+  )
+```
+
+```{r}
+cor(
+  movies$actorsAmount,
+  movies$runtime,
+  method = "spearman",
+  use = "complete.obs"
+)
+```
+
+La relación entre la cantidad de actores y la duración de la película es débil, lo que indica que un elenco más grande no implica necesariamente una mayor duración de la película. Se puede observar como en el gráfico no se sigue algún patrón reconocible, con el método de spearman (ρ = 0.68) se termina de confirmar que la relación no en lo suficientemente fuerte.
