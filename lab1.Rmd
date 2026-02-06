@@ -530,7 +530,55 @@ Los directores que hicieron las 20 películas mejor calificadas son:
 19. Hallie Chanan				
 20. Oliveira Júnior
 
-### 11. ¿Cómo se correlacionan los presupuestos con los ingresos? ¿Los altos presupuestos significan altos ingresos? Haga los gráficos que necesite, histograma, diagrama de dispersión 
+Se tomó en cuenta unicamente las películas con más de 100 calificaciones, ya que las películas con pocas calificaciones pueden dar un resultado erroneo y poco significativo.
+
+### 11. ¿Cómo se correlacionan los presupuestos con los ingresos? ¿Los altos presupuestos significan altos ingresos? Haga los gráficos que necesite, histograma, diagrama de dispersión
+```{r}
+movies$budget  <- as.numeric(movies$budget)
+movies$revenue <- as.numeric(movies$revenue)
+
+movies_clean <- movies[
+  !is.na(movies$budget) &
+  !is.na(movies$revenue) &
+  movies$budget > 0 &
+  movies$revenue > 0,
+]
+
+cor_budget_revenue <- cor(movies_clean$budget, movies_clean$revenue)
+cor_budget_revenue
+
+hist(
+  movies_clean$budget,
+  breaks = 40,
+  main = "Distribución del presupuesto",
+  xlab = "Presupuesto"
+)
+
+hist(
+  movies_clean$revenue,
+  breaks = 40,
+  main = "Distribución de ingresos",
+  xlab = "Ingresos"
+)
+
+plot(
+  movies_clean$budget,
+  movies_clean$revenue,
+  pch = 19,
+  cex = 0.5,
+  main = "Presupuesto vs Ingresos",
+  xlab = "Presupuesto",
+  ylab = "Ingresos"
+)
+
+abline(lm(revenue ~ budget, data = movies_clean), col = "red", lwd = 2)
+```
+La correlación entre el presupuesto y los ingresos es 0.72, lo que indica una relación positiva fuerte entre ambas variables.
+
+Esto significa que, en general, las películas con mayor presupuesto tienden a generar mayores ingresos en taquilla.
+
+Sin embargo, aunque la relación es fuerte, no es perfecta. Existe variabilidad en los datos, lo que indica que un alto presupuesto no garantiza completamente el éxito comercial.
+
 
 ### 12. ¿Se asocian ciertos meses de lanzamiento con mejores ingresos? 
 
