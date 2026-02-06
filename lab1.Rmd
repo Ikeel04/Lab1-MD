@@ -1,6 +1,6 @@
 ---
 title: "Lab1"
-author: 'Adrián González, Jose Ordoñez, '
+author: 'Adrián González, Jose Ordoñez, Daniela Ramírez'
 date: "2026-02-02"
 output:
   html_document:
@@ -11,21 +11,22 @@ output:
 
 # Librerías
 
-```{r}
+```{r include=FALSE}
 library(tidyverse)
 library(lubridate)
 library(skimr)
 library(ggpubr)
 library(nortest)
 library(tidyr)
+library(knitr)
 ```
 
 # Carga de datos
-```{r}
+```{r include=FALSE}
 movies <- read.csv("movies_2026.csv", stringsAsFactors = FALSE)
 ```
 
-```{r}
+```{r include=FALSE}
 dim(movies)
 head(movies)
 ```
@@ -157,11 +158,20 @@ movies %>%
 ## Ejercicio 4
 
 ### 1.¿Cuáles son las 10 películas que contaron con más presupuesto? 
-```{r}
+```{r include=FALSE}
 top_budget <- movies[order(movies$budget, decreasing=TRUE), c("title", "budget")]
 
+top_budget$budget <- format(
+  top_budget$budget,
+  big.mark = ",",
+  scientific = FALSE
+)
+```
+```{r}
 head(top_budget, n = 10)
 ```
+
+
 Las 10 películas con más presupuesto son:
 1. Pirates of the Caribbean: On Stranger Tides
 2. Avengers: Age of Ultron
@@ -176,9 +186,7 @@ Las 10 películas con más presupuesto son:
  
  
 ### 2.¿Cuáles son las 10 películas que más ingresos tuvieron?
-```{r}
-library(knitr)
-
+```{r include=FALSE}
 movies_filtradas <- movies[!is.na(movies$revenue) & movies$revenue > 0, ]
 
 movies_ordenadas <- movies_filtradas[
@@ -192,7 +200,8 @@ top10_ingresos$revenue <- format(
   big.mark = ",",
   scientific = FALSE
 )
-
+```
+```{r}
 kable(
   top10_ingresos,
   col.names = c("Película", "Ingresos"),
@@ -203,18 +212,17 @@ Las películas con mayores ingresos suelen coincidir con producciones de alto pr
  
 
 ### 3. ¿Cuál es la película que más votos tuvo? 
-```{r peliculas-votos}
+```{r peliculas-votos, include=FALSE}
 top_votes <- movies[order(movies$voteCount, decreasing=TRUE), c('title', 'voteCount')]
-
+```
+```{r}
 head(top_votes, n = 1)
 ```
 La película con más votos es: Inception, con un total de 30,788 votos.
 
 
 ### 4. ¿Cuál es la peor película de acuerdo a los votos de todos los usuarios? 
-```{r}
-library(knitr)
-
+```{r include=FALSE}
 movies_filtradas <- movies[
   !is.na(movies$voteAvg) & !is.na(movies$voteCount) & movies$voteCount > 0,
 ]
@@ -225,12 +233,16 @@ movies_ordenadas <- movies_filtradas[
 
 peor_pelicula <- movies_ordenadas[1, c("title", "voteAvg", "voteCount")]
 
+
+```
+```{r}
 kable(
   peor_pelicula,
   col.names = c("Película", "Promedio de votos", "Cantidad de votos"),
   caption = "Tabla 2. Peor película según el promedio de votos de los usuarios"
 )
 ```
+
 Se considera la peor película aquella con menor calificación promedio y una cantidad suficiente de votos que respalde dicha evaluación. En este caso la peor película sería "The Halloween Harvest" con 1 voto de 0
 
 
@@ -250,17 +262,15 @@ Se observa un incremento en la producción cinematográfica en años recientes.
  
 
 ### 6. ¿Cuál es el género principal de las 20 películas más recientes? ¿Cuál es el género principal que predomina en el conjunto de datos? Represéntelo usando un gráfico.
-```{r}
+```{r include=FALSE}
 recent_20 <- movies %>%
   arrange(desc(releaseDate)) %>%
   head(20)
 
 recent_20 %>% count(genres, sort = TRUE)
-```
-```{r}
+
 movies %>% count(genres, sort = TRUE)
-```
-```{r gráfico}
+
 movies %>%
   filter(!is.na(genres)) %>%
   separate_rows(genres, sep = "\\|") %>%
@@ -275,6 +285,22 @@ movies %>%
     y = "Cantidad de películas"
   )
 ```
+```{r}
+movies %>%
+  filter(!is.na(genres)) %>%
+  separate_rows(genres, sep = "\\|") %>%
+  count(genres, sort = TRUE) %>%
+  ggplot(aes(reorder(genres, n), n)) +
+  geom_col() +
+  coord_flip() +
+  theme_minimal() +
+  labs(
+    title = "Frecuencia de géneros principales",
+    x = "Género",
+    y = "Cantidad de películas"
+  )
+```
+
 El género drama predomina tanto en las películas recientes como en el conjunto total, lo que muestra una preferencia sostenida del público.
 
 ### 6.1. ¿A qué género principal pertenecen las películas más largas?
@@ -287,9 +313,7 @@ movies %>%
   
 
 ### 7. ¿Las películas de qué genero principal obtuvieron mayores ganancias? 
-```{r}
-library(knitr)
-
+```{r include=FALSE}
 movies_limpio <- movies[
   !is.na(movies$genres) &
   !is.na(movies$revenue) &
@@ -317,7 +341,7 @@ ganancias_por_genero <- ganancias_por_genero[
   order(ganancias_por_genero$Ganancias_totales, decreasing = TRUE),
 ]
 
-kable(
+ganancias_genero <- kable(
   ganancias_por_genero,
   col.names = c("Género principal", "Ganancias totales"),
   caption = "Tabla 5. Ganancias totales según el género principal de las películas"
@@ -344,13 +368,14 @@ axis(
     scientific = FALSE
   )
 )
-
+```
+```{r}
+ganancias_genero
 ```
 
-### 8. ¿La cantidad de actores influye en los ingresos de las películas? ¿se han hecho películas con más actores en los últimos años? 
-```{r}
-library(knitr)
 
+### 8. ¿La cantidad de actores influye en los ingresos de las películas? ¿se han hecho películas con más actores en los últimos años? 
+```{r include=FALSE}
 movies_limpio <- movies[
   !is.na(movies$actorsAmount) &
   !is.na(movies$revenue) &
@@ -406,7 +431,9 @@ actores_por_anio <- actores_por_anio[
   order(actores_por_anio$Año),
 ]
 
-# Gráfico de evolución temporal
+```
+```{r}
+correlacion
 plot(
   actores_por_anio$Año,
   actores_por_anio$Promedio_actores,
@@ -417,6 +444,7 @@ plot(
   ylab = "Promedio de actores"
 )
 ```
+
 Limitando la cantidad de actores a 100, evitando los casos extremos, la relación es de 0.3259705. Lo que indica que a mayor cantidad de actores, tienden a aumentar los ingresos,
 pero la cantidad de actores NO es el factor principal que explica el ingreso.
 
@@ -533,7 +561,7 @@ Los directores que hicieron las 20 películas mejor calificadas son:
 Se tomó en cuenta unicamente las películas con más de 100 calificaciones, ya que las películas con pocas calificaciones pueden dar un resultado erroneo y poco significativo.
 
 ### 11. ¿Cómo se correlacionan los presupuestos con los ingresos? ¿Los altos presupuestos significan altos ingresos? Haga los gráficos que necesite, histograma, diagrama de dispersión
-```{r}
+```{r include=FALSE}
 movies$budget  <- as.numeric(movies$budget)
 movies$revenue <- as.numeric(movies$revenue)
 
@@ -573,6 +601,20 @@ plot(
 
 abline(lm(revenue ~ budget, data = movies_clean), col = "red", lwd = 2)
 ```
+```{r}
+cor_budget_revenue
+plot(
+  movies_clean$budget,
+  movies_clean$revenue,
+  pch = 19,
+  cex = 0.5,
+  main = "Presupuesto vs Ingresos",
+  xlab = "Presupuesto",
+  ylab = "Ingresos"
+)
+
+```
+
 La correlación entre el presupuesto y los ingresos es 0.72, lo que indica una relación positiva fuerte entre ambas variables.
 
 Esto significa que, en general, las películas con mayor presupuesto tienden a generar mayores ingresos en taquilla.
@@ -581,7 +623,7 @@ Sin embargo, aunque la relación es fuerte, no es perfecta. Existe variabilidad 
 
 
 ### 12. ¿Se asocian ciertos meses de lanzamiento con mejores ingresos? 
-```{r}
+```{r include=FALSE}
 movies$releaseDate <- ymd(movies$releaseDate)
 movies$revenue     <- as.numeric(movies$revenue)
 
@@ -604,7 +646,8 @@ colnames(income_by_month)[2] <- "Ingreso_promedio"
 income_by_month
 
 income_by_month[which.max(income_by_month$Ingreso_promedio), ]
-
+```
+```{r}
 barplot(
   income_by_month$Ingreso_promedio,
   names.arg = income_by_month$Mes,
@@ -613,6 +656,8 @@ barplot(
   ylab = "Ingreso promedio"
 )
 ```
+
+
 Se observan dos meses que tienen una mayor cantidad de ingresos, mayo y junio; esto puede estar relacionado con vacaciones o cierta festividad, pero la diferencia no es muy grande, por lo que existen otros factores que pueden afectar en el ingreso.
 
 
@@ -671,22 +716,25 @@ promedio_peliculas_mes
 Los resultados muestran que los lanzamientos con mayores ingresos promedio se concentran en Junio y Mayo. Además, se observa que, en promedio, se lanzan aproximadamente 450 películas por mes, lo que refleja una alta frecuencia de estrenos a lo largo del año.
 
 ### 14. ¿Cómo se correlacionan las calificaciones con el éxito comercial? 
-```{r}
-ggplot(movies, aes(voteAvg, revenue)) +
+```{r include=FALSE}
+calificacion_exito <- ggplot(movies, aes(voteAvg, revenue)) +
   geom_point(alpha = 0.4) +
   theme_minimal()
 ```
+```{r}
+calificacion_exito
+```
+
 La correlación entre calificación y éxito comercial es débil, indicando que el gusto del público no siempre se traduce en mayores ingresos.
 
 ### 15. ¿La popularidad del elenco está directamente correlacionada con el éxito de taquilla? 
-```{r actorspopularity numérico}
+```{r actorspopularity numérico, include=FALSE}
 movies_clean <- movies %>%
   mutate(
     actorsPopularity = as.numeric(actorsPopularity)
   )
-```
-```{r}
-ggplot(
+
+elengo_ingreso <- ggplot(
   movies_clean %>% filter(!is.na(actorsPopularity), !is.na(revenue), revenue > 0),
   aes(actorsPopularity, revenue)
 ) +
@@ -698,15 +746,19 @@ ggplot(
     x = "Popularidad del elenco",
     y = "Ingresos (log)"
   )
-```
-```{r}
-cor(
+
+cor_elenco <- cor(
   movies_clean$actorsPopularity,
   movies_clean$revenue,
   method = "spearman",
   use = "complete.obs"
 )
 ```
+```{r}
+elengo_ingreso
+cor_elenco
+```
+
 El análisis de la relación entre la popularidad del elenco y los ingresos muestra una correlación de Spearman muy baja (-0.07), lo que indica que no existe una relación significativa entre ambas variables.
 
 El gráfico de dispersión, incluso al utilizar una escala logarítmica para los ingresos, evidencia una alta dispersión de los datos y la ausencia de una tendencia clara. Esto significa que la popularidad del elenco, por sí sola, no es un factor determinante del éxito comercial de una película.
@@ -715,8 +767,8 @@ Por lo que, se concluye que el desempeño en taquilla depende de múltiples fact
 
 
 ### 16. ¿Qué estrategias de marketing, como videos promocionales o páginas oficiales, generan mejores resultados?
-```{r}
-movies %>%
+```{r include=FALSE}
+marketing <- movies %>%
   mutate(
     video_status = case_when(
       video == TRUE  ~ "Con video",
@@ -733,6 +785,10 @@ movies %>%
   )
 
 ```
+```{r}
+marketing
+```
+
 La variable que indica la presencia de videos promocionales presenta tres estados: películas con videos, sin videos y películas para las cuales la información no se encuentra disponible. Estas últimas aparecen como valores faltantes (NA) y no deben interpretarse como ausencia de videos.
 
 Al analizar los resultados, se observa que las películas con información faltante presentan ingresos promedio elevados, lo cual se explica por la presencia de producciones antiguas o de alto impacto comercial cuyo registro de marketing no estaba disponible. Por esta razón, los valores NA se interpretan como una categoría independiente y no como una ausencia explícita de estrategias promocionales.
