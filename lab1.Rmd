@@ -1,6 +1,6 @@
 ---
 title: "Lab1"
-author: 'Adrián González, Jose Ordoñez, '
+author: 'Adrián González, Jose Ordoñez, Daniela Ramírez'
 date: "2026-02-02"
 output:
   html_document:
@@ -11,21 +11,22 @@ output:
 
 # Librerías
 
-```{r}
+```{r include=FALSE}
 library(tidyverse)
 library(lubridate)
 library(skimr)
 library(ggpubr)
 library(nortest)
 library(tidyr)
+library(knitr)
 ```
 
 # Carga de datos
-```{r}
+```{r include=FALSE}
 movies <- read.csv("movies_2026.csv", stringsAsFactors = FALSE)
 ```
 
-```{r}
+```{r include=FALSE}
 dim(movies)
 head(movies)
 ```
@@ -157,11 +158,20 @@ movies %>%
 ## Ejercicio 4
 
 ### 1.¿Cuáles son las 10 películas que contaron con más presupuesto? 
-```{r}
+```{r include=FALSE}
 top_budget <- movies[order(movies$budget, decreasing=TRUE), c("title", "budget")]
 
+top_budget$budget <- format(
+  top_budget$budget,
+  big.mark = ",",
+  scientific = FALSE
+)
+```
+```{r}
 head(top_budget, n = 10)
 ```
+
+
 Las 10 películas con más presupuesto son:
 1. Pirates of the Caribbean: On Stranger Tides
 2. Avengers: Age of Ultron
@@ -176,9 +186,7 @@ Las 10 películas con más presupuesto son:
  
  
 ### 2.¿Cuáles son las 10 películas que más ingresos tuvieron?
-```{r}
-library(knitr)
-
+```{r include=FALSE}
 movies_filtradas <- movies[!is.na(movies$revenue) & movies$revenue > 0, ]
 
 movies_ordenadas <- movies_filtradas[
@@ -192,7 +200,8 @@ top10_ingresos$revenue <- format(
   big.mark = ",",
   scientific = FALSE
 )
-
+```
+```{r}
 kable(
   top10_ingresos,
   col.names = c("Película", "Ingresos"),
@@ -203,18 +212,17 @@ Las películas con mayores ingresos suelen coincidir con producciones de alto pr
  
 
 ### 3. ¿Cuál es la película que más votos tuvo? 
-```{r peliculas-votos}
+```{r peliculas-votos, include=FALSE}
 top_votes <- movies[order(movies$voteCount, decreasing=TRUE), c('title', 'voteCount')]
-
+```
+```{r}
 head(top_votes, n = 1)
 ```
 La película con más votos es: Inception, con un total de 30,788 votos.
 
 
 ### 4. ¿Cuál es la peor película de acuerdo a los votos de todos los usuarios? 
-```{r}
-library(knitr)
-
+```{r include=FALSE}
 movies_filtradas <- movies[
   !is.na(movies$voteAvg) & !is.na(movies$voteCount) & movies$voteCount > 0,
 ]
@@ -225,12 +233,16 @@ movies_ordenadas <- movies_filtradas[
 
 peor_pelicula <- movies_ordenadas[1, c("title", "voteAvg", "voteCount")]
 
+
+```
+```{r}
 kable(
   peor_pelicula,
   col.names = c("Película", "Promedio de votos", "Cantidad de votos"),
   caption = "Tabla 2. Peor película según el promedio de votos de los usuarios"
 )
 ```
+
 Se considera la peor película aquella con menor calificación promedio y una cantidad suficiente de votos que respalde dicha evaluación. En este caso la peor película sería "The Halloween Harvest" con 1 voto de 0
 
 
