@@ -422,6 +422,63 @@ pero la cantidad de actores NO es el factor principal que explica el ingreso.
 
 
 ### 9. ¿Es posible que la cantidad de hombres y mujeres en el reparto influya en la popularidad y los ingresos de las películas? 
+```{r}
+movies$castWomenAmount <- as.numeric(movies$castWomenAmount)
+movies$castMenAmount   <- as.numeric(movies$castMenAmount)
+movies$revenue         <- as.numeric(movies$revenue)
+movies$popularity      <- as.numeric(movies$popularity)
+
+movies_clean <- movies[
+  !is.na(movies$castWomenAmount) &
+  !is.na(movies$castMenAmount) &
+  !is.na(movies$revenue) &
+  !is.na(movies$popularity) &
+  movies$revenue > 0,
+]
+
+cor_women_revenue <- cor(movies_clean$castWomenAmount, movies_clean$revenue)
+cor_men_revenue   <- cor(movies_clean$castMenAmount, movies_clean$revenue)
+
+cor_women_pop <- cor(movies_clean$castWomenAmount, movies_clean$popularity)
+cor_men_pop   <- cor(movies_clean$castMenAmount, movies_clean$popularity)
+
+cor_women_revenue
+cor_men_revenue
+cor_women_pop
+cor_men_pop
+
+plot(
+  movies_clean$castWomenAmount,
+  movies_clean$revenue,
+  pch = 19,
+  cex = 0.5,
+  main = "Mujeres en el reparto vs Ingresos",
+  xlab = "Cantidad de mujeres",
+  ylab = "Ingresos"
+)
+
+plot(
+  movies_clean$castMenAmount,
+  movies_clean$revenue,
+  pch = 19,
+  cex = 0.5,
+  main = "Hombres en el reparto vs Ingresos",
+  xlab = "Cantidad de hombres",
+  ylab = "Ingresos"
+)
+```
+Las correlaciones obtenidas entre la composición del reparto y el desempeño de las películas son bajas:
+
+Mujeres vs ingresos: 0.25 → relación positiva débil
+
+Hombres vs ingresos: 0.018 → prácticamente sin relación
+
+Mujeres vs popularidad: 0.051 → muy débil
+
+Hombres vs popularidad: -0.003 → nula
+
+Esto indica que la cantidad de hombres o mujeres en el reparto no tiene una influencia significativa ni sobre los ingresos ni sobre la popularidad de las películas.
+
 
 ### 10. ¿Quiénes son los directores que hicieron las 20 películas mejor calificadas?
 ```{r include=FALSE}
@@ -477,7 +534,12 @@ Los directores que hicieron las 20 películas mejor calificadas son:
 
 ### 12. ¿Se asocian ciertos meses de lanzamiento con mejores ingresos? 
 
+
 ### 13. ¿En qué meses se han visto los lanzamientos con mejores ingresos?¿cuantas películas, en promedio, se han lanzado por mes? 
+```{r}
+
+```
+
 
 ### 14. ¿Cómo se correlacionan las calificaciones con el éxito comercial? 
 ```{r}
