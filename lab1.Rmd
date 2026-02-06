@@ -199,7 +199,12 @@ Las películas con mayores ingresos suelen coincidir con producciones de alto pr
  
 
 ### 3. ¿Cuál es la película que más votos tuvo? 
----
+```{r peliculas-votos}
+top_votes <- movies[order(movies$voteCount, decreasing=TRUE), c('title', 'voteCount')]
+
+head(top_votes, n = 1)
+```
+La película con más votos es: Inception, con un total de 30,788 votos.
 
 
 ### 4. ¿Cuál es la peor película de acuerdo a los votos de todos los usuarios? 
