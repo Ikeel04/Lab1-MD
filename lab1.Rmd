@@ -581,6 +581,40 @@ Sin embargo, aunque la relación es fuerte, no es perfecta. Existe variabilidad 
 
 
 ### 12. ¿Se asocian ciertos meses de lanzamiento con mejores ingresos? 
+```{r}
+movies$releaseDate <- ymd(movies$releaseDate)
+movies$revenue     <- as.numeric(movies$revenue)
+
+movies_clean <- movies[
+  !is.na(movies$releaseDate) &
+  !is.na(movies$revenue) &
+  movies$revenue > 0,
+]
+
+movies_clean$month <- month(movies_clean$releaseDate)
+
+income_by_month <- aggregate(
+  movies_clean$revenue,
+  by = list(Mes = movies_clean$month),
+  FUN = mean
+)
+
+colnames(income_by_month)[2] <- "Ingreso_promedio"
+
+income_by_month
+
+income_by_month[which.max(income_by_month$Ingreso_promedio), ]
+
+barplot(
+  income_by_month$Ingreso_promedio,
+  names.arg = income_by_month$Mes,
+  main = "Ingreso promedio por mes",
+  xlab = "Mes",
+  ylab = "Ingreso promedio"
+)
+```
+Se observan dos meses que tienen una mayor cantidad de ingresos, mayo y junio; esto puede estar relacionado con vacaciones o cierta festividad, pero la diferencia no es muy grande, por lo que existen otros factores que pueden afectar en el ingreso.
+
 
 
 ### 13. ¿En qué meses se han visto los lanzamientos con mejores ingresos?¿cuantas películas, en promedio, se han lanzado por mes? 
