@@ -324,6 +324,78 @@ axis(
 ```
 
 ### 8. ¿La cantidad de actores influye en los ingresos de las películas? ¿se han hecho películas con más actores en los últimos años? 
+```{r}
+library(knitr)
+
+movies_limpio <- movies[
+  !is.na(movies$actorsAmount) &
+  !is.na(movies$revenue) &
+  !is.na(movies$releaseYear) &
+  movies$revenue > 0,
+]
+
+# Se considera un máximo razonable de 100 actores por película
+
+movies_filtrado <- movies_limpio[
+  movies_limpio$actorsAmount <= 100,
+]
+
+# Correlación de Pearson
+correlacion <- cor(
+  movies_filtrado$actorsAmount,
+  movies_filtrado$revenue,
+  method = "pearson"
+)
+
+correlacion
+
+# Gráfico de dispersión con escala logarítmica
+plot(
+  movies_filtrado$actorsAmount,
+  movies_filtrado$revenue,
+  main = "Relación entre cantidad de actores e ingresos",
+  xlab = "Cantidad de actores",
+  ylab = "Ingresos (USD)",
+  pch = 19,
+  cex = 0.6,
+  log = "y"
+)
+
+# Línea de regresión
+abline(
+  lm(revenue ~ actorsAmount, data = movies_filtrado),
+  col = "red",
+  lwd = 2
+)
+
+# Promedio de actores por año
+actores_por_anio <- aggregate(
+  movies_filtrado$actorsAmount,
+  by = list(Año = movies_filtrado$releaseYear),
+  FUN = mean
+)
+
+colnames(actores_por_anio)[2] <- "Promedio_actores"
+
+# Ordenar por año
+actores_por_anio <- actores_por_anio[
+  order(actores_por_anio$Año),
+]
+
+# Gráfico de evolución temporal
+plot(
+  actores_por_anio$Año,
+  actores_por_anio$Promedio_actores,
+  type = "l",
+  lwd = 2,
+  main = "Evolución del promedio de actores por año",
+  xlab = "Año de lanzamiento",
+  ylab = "Promedio de actores"
+)
+```
+Limitando la cantidad de actores a 100, evitando los casos extremos, la relación es de 0.3259705. Lo que indica que a mayor cantidad de actores, tienden a aumentar los ingresos,
+pero la cantidad de actores NO es el factor principal que explica el ingreso.
+
 
 ### 9. ¿Es posible que la cantidad de hombres y mujeres en el reparto influya en la popularidad y los ingresos de las películas? 
 
