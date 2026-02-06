@@ -619,9 +619,56 @@ Se observan dos meses que tienen una mayor cantidad de ingresos, mayo y junio; e
 
 ### 13. ¿En qué meses se han visto los lanzamientos con mejores ingresos?¿cuantas películas, en promedio, se han lanzado por mes? 
 ```{r}
+library(knitr)
+
+movies_limpio <- movies[
+  !is.na(movies$releaseDate) &
+  !is.na(movies$revenue) &
+  movies$revenue > 0,
+]
+
+# Convertir a fecha
+movies_limpio$releaseDate <- as.Date(movies_limpio$releaseDate)
+
+movies_limpio$Mes <- as.numeric(format(movies_limpio$releaseDate, "%m"))
+
+ingresos_por_mes <- aggregate(
+  movies_limpio$revenue,
+  by = list(Mes = movies_limpio$Mes),
+  FUN = mean
+)
+
+colnames(ingresos_por_mes)[2] <- "Ingreso_promedio"
+
+# Ordenar por mayor ingreso
+ingresos_por_mes <- ingresos_por_mes[
+  order(ingresos_por_mes$Ingreso_promedio, decreasing = TRUE),
+]
+
+rownames(ingresos_por_mes) <- NULL
+
+# Cambiar número de mes por nombre
+ingresos_por_mes$Mes <- month.name[ingresos_por_mes$Mes]
+
+kable(
+  ingresos_por_mes,
+  caption = "Ingreso promedio de las películas según el mes de lanzamiento"
+)
+
+peliculas_por_mes <- aggregate(
+  movies_limpio$revenue,
+  by = list(Mes = movies_limpio$Mes),
+  FUN = length
+)
+
+colnames(peliculas_por_mes)[2] <- "Cantidad_peliculas"
+
+# Promedio mensual de lanzamientos
+promedio_peliculas_mes <- mean(peliculas_por_mes$Cantidad_peliculas)
+promedio_peliculas_mes
 
 ```
-
+Los resultados muestran que los lanzamientos con mayores ingresos promedio se concentran en Junio y Mayo. Además, se observa que, en promedio, se lanzan aproximadamente 450 películas por mes, lo que refleja una alta frecuencia de estrenos a lo largo del año.
 
 ### 14. ¿Cómo se correlacionan las calificaciones con el éxito comercial? 
 ```{r}
