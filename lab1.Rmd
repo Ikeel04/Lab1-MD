@@ -19,7 +19,7 @@ library(tidyr)
 
 # Carga de datos
 ```{r}
-movies <- read.csv("movies_2026.csv")
+movies <- read.csv("movies_2026.csv", stringsAsFactors = FALSE)
 ```
 
 ```{r}
@@ -152,36 +152,65 @@ movies %>%
 ```
 
 ##Ejercicio 4
-### 1. ¿Cuáles son las 10 películas que contaron con más presupuesto? 
+##1. ¿Cuáles son las 10 películas que contaron con más presupuesto? 
 ---
  
-
-### 2. ¿Cuáles son las 10 películas que más ingresos tuvieron? 
+ 
+##2.¿Cuáles son las 10 películas que más ingresos tuvieron?
 ```{r}
-movies %>%
-  arrange(desc(revenue)) %>%
-  select(title, revenue) %>%
-  head(10)
+library(knitr)
+
+movies_filtradas <- movies[!is.na(movies$revenue) & movies$revenue > 0, ]
+
+movies_ordenadas <- movies_filtradas[
+  order(movies_filtradas$revenue, decreasing = TRUE),
+]
+
+top10_ingresos <- movies_ordenadas[1:10, c("title", "revenue")]
+
+top10_ingresos$revenue <- format(
+  top10_ingresos$revenue,
+  big.mark = ",",
+  scientific = FALSE
+)
+
+kable(
+  top10_ingresos,
+  col.names = c("Película", "Ingresos"),
+  caption = "Tabla 1. Las 10 películas con mayores ingresos"
+)
 ```
 Las películas con mayores ingresos suelen coincidir con producciones de alto presupuesto, aunque no necesariamente todas las películas costosas garantizan altos retornos.
  
 
-### 3. ¿Cuál es la película que más votos tuvo? 
+##3. ¿Cuál es la película que más votos tuvo? 
 ---
 
 
-### 4. ¿Cuál es la peor película de acuerdo a los votos de todos los usuarios? 
+##4. ¿Cuál es la peor película de acuerdo a los votos de todos los usuarios? 
 ```{r}
-movies %>%
-  filter(voteCount > 50) %>%
-  arrange(voteAvg) %>%
-  select(title, voteAvg, voteCount) %>%
-  head(1)
+library(knitr)
+
+movies_filtradas <- movies[
+  !is.na(movies$voteAvg) & !is.na(movies$voteCount) & movies$voteCount > 0,
+]
+
+movies_ordenadas <- movies_filtradas[
+  order(movies_filtradas$voteAvg),
+]
+
+peor_pelicula <- movies_ordenadas[1, c("title", "voteAvg", "voteCount")]
+
+kable(
+  peor_pelicula,
+  col.names = c("Película", "Promedio de votos", "Cantidad de votos"),
+  caption = "Tabla 2. Peor película según el promedio de votos de los usuarios"
+)
 ```
-Se considera la peor película aquella con menor calificación promedio y una cantidad suficiente de votos que respalde dicha evaluación.
+Se considera la peor película aquella con menor calificación promedio y una cantidad suficiente de votos que respalde dicha evaluación. En este caso la peor película sería "The Halloween Harvest" con 1 voto de 0
 
 
-### 5. ¿Cuántas películas se hicieron en cada año? ¿En qué año se hicieron más películas? Haga un gráfico de barras.
+##5. ¿Cuántas películas se hicieron en cada año? ¿En qué año se hicieron más películas? Haga un gráfico de barras.
 ```{r}
 movies_per_year <- movies %>% count(releaseYear)
 
@@ -196,7 +225,7 @@ movies_per_year %>% arrange(desc(n)) %>% head(1)
 Se observa un incremento en la producción cinematográfica en años recientes.
  
 
-### 6. ¿Cuál es el género principal de las 20 películas más recientes? ¿Cuál es el género principal que predomina en el conjunto de datos? Represéntelo usando un gráfico.
+##6. ¿Cuál es el género principal de las 20 películas más recientes? ¿Cuál es el género principal que predomina en el conjunto de datos? Represéntelo usando un gráfico.
 ```{r}
 recent_20 <- movies %>%
   arrange(desc(releaseDate)) %>%
@@ -224,7 +253,7 @@ movies %>%
 ```
 El género drama predomina tanto en las películas recientes como en el conjunto total, lo que muestra una preferencia sostenida del público.
 
-  1. ¿A qué género principal pertenecen las películas más largas?
+##6.1. ¿A qué género principal pertenecen las películas más largas?
 ```{r}
 movies %>%
   arrange(desc(runtime)) %>%
@@ -245,9 +274,7 @@ movies %>%
 
 ### 12. ¿Se asocian ciertos meses de lanzamiento con mejores ingresos? 
 
-### 13. ¿En qué meses se han visto los lanzamientos con mejores ingresos?¿cuantas películas, en 
-
-promedio, se han lanzado por mes? 
+### 13. ¿En qué meses se han visto los lanzamientos con mejores ingresos?¿cuantas películas, en promedio, se han lanzado por mes? 
 
 ### 14. ¿Cómo se correlacionan las calificaciones con el éxito comercial? 
 
