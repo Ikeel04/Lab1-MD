@@ -152,11 +152,11 @@ movies %>%
 ```
 
 ##Ejercicio 4
-##1. ¿Cuáles son las 10 películas que contaron con más presupuesto? 
+### 1.¿Cuáles son las 10 películas que contaron con más presupuesto? 
 ---
  
  
-##2.¿Cuáles son las 10 películas que más ingresos tuvieron?
+### 2.¿Cuáles son las 10 películas que más ingresos tuvieron?
 ```{r}
 library(knitr)
 
@@ -183,11 +183,11 @@ kable(
 Las películas con mayores ingresos suelen coincidir con producciones de alto presupuesto, aunque no necesariamente todas las películas costosas garantizan altos retornos.
  
 
-##3. ¿Cuál es la película que más votos tuvo? 
+### 3. ¿Cuál es la película que más votos tuvo? 
 ---
 
 
-##4. ¿Cuál es la peor película de acuerdo a los votos de todos los usuarios? 
+### 4. ¿Cuál es la peor película de acuerdo a los votos de todos los usuarios? 
 ```{r}
 library(knitr)
 
@@ -210,7 +210,7 @@ kable(
 Se considera la peor película aquella con menor calificación promedio y una cantidad suficiente de votos que respalde dicha evaluación. En este caso la peor película sería "The Halloween Harvest" con 1 voto de 0
 
 
-##5. ¿Cuántas películas se hicieron en cada año? ¿En qué año se hicieron más películas? Haga un gráfico de barras.
+### 5. ¿Cuántas películas se hicieron en cada año? ¿En qué año se hicieron más películas? Haga un gráfico de barras.
 ```{r}
 movies_per_year <- movies %>% count(releaseYear)
 
@@ -225,7 +225,7 @@ movies_per_year %>% arrange(desc(n)) %>% head(1)
 Se observa un incremento en la producción cinematográfica en años recientes.
  
 
-##6. ¿Cuál es el género principal de las 20 películas más recientes? ¿Cuál es el género principal que predomina en el conjunto de datos? Represéntelo usando un gráfico.
+### 6. ¿Cuál es el género principal de las 20 películas más recientes? ¿Cuál es el género principal que predomina en el conjunto de datos? Represéntelo usando un gráfico.
 ```{r}
 recent_20 <- movies %>%
   arrange(desc(releaseDate)) %>%
@@ -253,7 +253,7 @@ movies %>%
 ```
 El género drama predomina tanto en las películas recientes como en el conjunto total, lo que muestra una preferencia sostenida del público.
 
-##6.1. ¿A qué género principal pertenecen las películas más largas?
+### 6.1. ¿A qué género principal pertenecen las películas más largas?
 ```{r}
 movies %>%
   arrange(desc(runtime)) %>%
@@ -263,6 +263,65 @@ movies %>%
   
 
 ### 7. ¿Las películas de qué genero principal obtuvieron mayores ganancias? 
+```{r}
+library(knitr)
+
+movies_limpio <- movies[
+  !is.na(movies$genres) &
+  !is.na(movies$revenue) &
+  movies$revenue > 0,
+]
+
+genero_principal <- sapply(
+  strsplit(movies_limpio$genres, "\\|"),
+  `[`,
+  1
+)
+
+movies_limpio$genero_principal <- genero_principal
+
+ganancias_por_genero <- aggregate(
+  movies_limpio$revenue,
+  by = list(Genero = movies_limpio$genero_principal),
+  FUN = sum
+)
+
+colnames(ganancias_por_genero)[2] <- "Ganancias_totales"
+
+# Ordenar de mayor a menor
+ganancias_por_genero <- ganancias_por_genero[
+  order(ganancias_por_genero$Ganancias_totales, decreasing = TRUE),
+]
+
+kable(
+  ganancias_por_genero,
+  col.names = c("Género principal", "Ganancias totales"),
+  caption = "Tabla 5. Ganancias totales según el género principal de las películas"
+)
+
+barplot(
+  ganancias_por_genero$Ganancias_totales,
+  names.arg = ganancias_por_genero$Genero,
+  las = 2,                 # girar nombres de géneros
+  cex.names = 0.8,         # tamaño de texto
+  main = "Ganancias totales según género principal",
+  xlab = "Género principal",
+  ylab = "Ganancias totales (USD)",
+  yaxt = "n"               # quitar eje Y automático
+)
+
+# Eje Y formateado (sin notación científica)
+axis(
+  side = 2,
+  at = pretty(ganancias_por_genero$Ganancias_totales),
+  labels = format(
+    pretty(ganancias_por_genero$Ganancias_totales),
+    big.mark = ",",
+    scientific = FALSE
+  )
+)
+
+```
 
 ### 8. ¿La cantidad de actores influye en los ingresos de las películas? ¿se han hecho películas con más actores en los últimos años? 
 
