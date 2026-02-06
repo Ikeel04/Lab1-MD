@@ -408,9 +408,70 @@ pero la cantidad de actores NO es el factor principal que explica el ingreso.
 ### 13. ¿En qué meses se han visto los lanzamientos con mejores ingresos?¿cuantas películas, en promedio, se han lanzado por mes? 
 
 ### 14. ¿Cómo se correlacionan las calificaciones con el éxito comercial? 
+```{r}
+ggplot(movies, aes(voteAvg, revenue)) +
+  geom_point(alpha = 0.4) +
+  theme_minimal()
+```
+La correlación entre calificación y éxito comercial es débil, indicando que el gusto del público no siempre se traduce en mayores ingresos.
 
 ### 15. ¿La popularidad del elenco está directamente correlacionada con el éxito de taquilla? 
+```{r actorspopularity numérico}
+movies_clean <- movies %>%
+  mutate(
+    actorsPopularity = as.numeric(actorsPopularity)
+  )
+```
+```{r gráfico}
+ggplot(
+  movies_clean %>% filter(!is.na(actorsPopularity), !is.na(revenue), revenue > 0),
+  aes(actorsPopularity, revenue)
+) +
+  geom_point(alpha = 0.4) +
+  scale_y_log10() +
+  theme_minimal() +
+  labs(
+    title = "Popularidad del elenco vs ingresos (escala logarítmica)",
+    x = "Popularidad del elenco",
+    y = "Ingresos (log)"
+  )
+```
+```{r}
+cor(
+  movies_clean$actorsPopularity,
+  movies_clean$revenue,
+  method = "spearman",
+  use = "complete.obs"
+)
+```
+El análisis de la relación entre la popularidad del elenco y los ingresos muestra una correlación de Spearman muy baja (-0.07), lo que indica que no existe una relación significativa entre ambas variables.
+
+El gráfico de dispersión, incluso al utilizar una escala logarítmica para los ingresos, evidencia una alta dispersión de los datos y la ausencia de una tendencia clara. Esto significa que la popularidad del elenco, por sí sola, no es un factor determinante del éxito comercial de una película.
+
+Por lo que, se concluye que el desempeño en taquilla depende de múltiples factores adicionales, como el presupuesto, el género, la estrategia de marketing y el momento de lanzamiento.
+
 
 ### 16. ¿Qué estrategias de marketing, como videos promocionales o páginas oficiales, generan mejores resultados?
+```{r}
+movies %>%
+  mutate(
+    video_status = case_when(
+      video == TRUE  ~ "Con video",
+      video == FALSE ~ "Sin video",
+      is.na(video)   ~ "Información no disponible"
+    ),
+    hasHomepage = ifelse(is.na(homePage), "No", "Sí")
+  ) %>%
+  group_by(video_status, hasHomepage) %>%
+  summarise(
+    avg_revenue = mean(revenue, na.rm = TRUE),
+    avg_popularity = mean(popularity, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+```
+La variable que indica la presencia de videos promocionales presenta tres estados: películas con videos, sin videos y películas para las cuales la información no se encuentra disponible. Estas últimas aparecen como valores faltantes (NA) y no deben interpretarse como ausencia de videos.
+
+Al analizar los resultados, se observa que las películas con información faltante presentan ingresos promedio elevados, lo cual se explica por la presencia de producciones antiguas o de alto impacto comercial cuyo registro de marketing no estaba disponible. Por esta razón, los valores NA se interpretan como una categoría independiente y no como una ausencia explícita de estrategias promocionales.
 
 
