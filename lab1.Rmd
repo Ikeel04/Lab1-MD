@@ -1,6 +1,6 @@
 ---
 title: "Lab1"
-author: "Adrián González"
+author: "Adrián González, Jose Ordoñez, "
 date: "2026-02-02"
 output: pdf_document
 ---
@@ -153,7 +153,22 @@ movies %>%
 
 ##Ejercicio 4
 ### 1.¿Cuáles son las 10 películas que contaron con más presupuesto? 
----
+```{r}
+top_budget <- movies[order(movies$budget, decreasing=TRUE), c("title", "budget")]
+
+head(top_budget, n = 10)
+```
+Las 10 películas con más presupuesto son:
+1. Pirates of the Caribbean: On Stranger Tides
+2. Avengers: Age of Ultron
+3. Avengers: Endgame
+4. Avatar: Fire and Ash
+5. Pirates of the Caribbean: At World's End
+6. Justice League
+7. Avengers: Infinity War
+8. Superman Returns
+9. Tangled
+10. The Lion King
  
  
 ### 2.¿Cuáles son las 10 películas que más ingresos tuvieron?
